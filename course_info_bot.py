@@ -2,6 +2,12 @@ import praw
 import time
 from bs4 import BeautifulSoup
 import requests
+import easygui
+
+# Const variable
+SLEEP_TIME = 20
+PRAW_ERROR_TIME = 600
+TEST_MODE = False
 
 def run_bot(reddit):
     
@@ -29,7 +35,7 @@ def reply_comment(comment):
     bot_reply = get_info(course_name, course_code)
     comment.reply(bot_reply + "\n\n**BEEP BOP. I'm a bot. You can contact my creator [here](https://www.reddit.com/message/compose?to=CanadianSorryPanda&subject=&message=)**")
     comment.save()  # save the comment so the bot doesn't reply to it multiple times
-    print("Replied to a comment")
+    testMessage("Reddit Bot - KidHelpline", "Replied to a comment")
     
 def reply_post(post):
     bot_request = post.selftext.upper().split("!FIND", 2)[1].strip()
@@ -39,7 +45,7 @@ def reply_post(post):
     bot_reply = get_info(course_name, course_code)
     post.reply(bot_reply + "\n\n**BEEP BOP. I'm a bot. You can contact my creator [here](https://www.reddit.com/message/compose?to=CanadianSorryPanda&subject=&message=)**")
     post.save()
-    print("Replied to a post")
+    testMessage("Reddit Bot - KidHelpline", "Replied to a post")
   
   
 def login_bot(): 
@@ -58,13 +64,13 @@ def get_info(course_name, course_code):
     req = requests.get(url)
     soup = BeautifulSoup(req.content, 'html.parser')
     
-    text_td = soup.find_all("td", class_ = "courseValueCell")  # get course information from the webpage and save the name, decription etc. as a list
+    text_td = soup.find_all("td", class_ = "courseValueCell")  # get all course names from the website
     
     if not text_td: # if empty, this means the course name doesn't exist 
         return "Sorry, I couldn't find the course you were looking for :("
     
     else:
-        name = "*Course name:* " + text_td[2].text    
+        name = "*Course name:* " + text_td[2].text
         faculty = "*Faculty:* " + text_td[4].text
         credit_hours = "*Credit hours:* " + text_td[1].text
         description  = "*Description:* " + text_td[3].text
@@ -72,21 +78,31 @@ def get_info(course_name, course_code):
         return (name + "\n\n" + faculty + "\n\n" + credit_hours + "\n\n" + description)
     
 
+def messageBox(title, message):
+    easygui.msgbox(message, title = title)
+
+def testMessage(title, message):
+    if (TEST_MODE):
+        messageBox(title, message)
+    
+
 def main():  
     
     reddit = login_bot()
     
+    # Starting of the application
+    messageBox("Reddit Bot - KidHelpline", "Application start")
+    
     while True: 
         try:
             run_bot(reddit)
-            print("Sleeping")
-            time.sleep(120) # bot checks for new posts or comments once every 2 minutes
+            testMessage("Reddit Bot - KidHelpline", "Sleeping")
+            time.sleep(SLEEP_TIME) # bot checks for new posts or comments once every 2 minutes
         except praw.exceptions.PRAWException as e:
-            print("PRAW error: " + str(e))
-            print("Waiting")
-            time.sleep(600) # rest for 10 minutes if PRAW related error, longer wait-time is fine as the subreddit is not very active
+            messageBox("PRAW error", str(e))
+            time.sleep(PRAW_ERROR_TIME) # rest for 10 minutes if PRAW related error, longer wait-time is fine as the subreddit is not very active
         except Exception as e:
-            print("Error: " + str(e))
+            messageBox("Error: ", str(e))
             break  
         # if a non-PRAW error occurs then stop the program, if you want to run the bot indefinitely simply replace this line with time.sleep()
     
@@ -97,5 +113,3 @@ if __name__ == "__main__": # for Python interpreter if you want to run the bot f
   
     
 main()
-    
-    
