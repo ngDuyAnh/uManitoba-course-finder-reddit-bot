@@ -3,15 +3,22 @@ import time
 from bs4 import BeautifulSoup
 import requests
 import easygui
+from datetime import datetime
 
 # Const variable
-SLEEP_TIME = 20
-PRAW_ERROR_TIME = 600
+SLEEP_TIME = 5
+PRAW_ERROR_TIME = 20
 TEST_MODE = False
+
+# Redit variable
+POST_LIMIT = 80
+
+# File name
+FILE_NAME = "botLog.txt"
 
 def run_bot(reddit):
     
-    sub = reddit.subreddit("umanitoba").new(limit = 20)   #get the latest posts on the subreddit
+    sub = reddit.subreddit("umanitoba").new(limit = POST_LIMIT)   #get the latest posts on the subreddit
 
     for post in sub: #looping through all the latest posts 
         if ("!find" in post.selftext) and (not post.saved):  # checking if the bot is called in that post and if the bot hasn't already replied 
@@ -37,6 +44,9 @@ def reply_comment(comment):
     comment.save()  # save the comment so the bot doesn't reply to it multiple times
     testMessage("Reddit Bot - KidHelpline", "Replied to a comment")
     
+    # Update log
+    log("Replied to a comment")
+    
 def reply_post(post):
     bot_request = post.selftext.upper().split("!FIND", 2)[1].strip()
     request = bot_request.split(" ")
@@ -46,6 +56,9 @@ def reply_post(post):
     post.reply(bot_reply + "\n\n**BEEP BOP. I'm a bot. You can contact my creator [here](https://www.reddit.com/message/compose?to=CanadianSorryPanda&subject=&message=)**")
     post.save()
     testMessage("Reddit Bot - KidHelpline", "Replied to a post")
+    
+    # Update log
+    log("Replied to a post")
   
   
 def login_bot(): 
@@ -84,11 +97,20 @@ def messageBox(title, message):
 def testMessage(title, message):
     if (TEST_MODE):
         messageBox(title, message)
+        
+def log(MESSAGE):
+    # Append to the log
+    FILE_HANDLE = open(FILE_NAME, "a")
+    
+    # Append the information
+    FILE_HANDLE.write(datetime.now() + " " + MESSAGE)
     
 
 def main():  
     
+    # Local variable dictionary
     reddit = login_bot()
+    open(FILE_NAME, "w")
     
     # Starting of the application
     messageBox("Reddit Bot - KidHelpline", "Application start")
@@ -99,7 +121,7 @@ def main():
             testMessage("Reddit Bot - KidHelpline", "Sleeping")
             time.sleep(SLEEP_TIME) # bot checks for new posts or comments once every 2 minutes
         except praw.exceptions.PRAWException as e:
-            messageBox("PRAW error", str(e))
+            log(str(e))
             time.sleep(PRAW_ERROR_TIME) # rest for 10 minutes if PRAW related error, longer wait-time is fine as the subreddit is not very active
         except Exception as e:
             messageBox("Error: ", str(e))
