@@ -7,7 +7,8 @@ from datetime import datetime
 
 # Const variable
 SLEEP_TIME = 5
-PRAW_ERROR_TIME = 20
+PRAW_ERROR_TIME_OUT = 10
+ERROR_TIME_OUT = 20
 TEST_MODE = False
 
 # Redit variable
@@ -103,31 +104,38 @@ def log(MESSAGE):
     FILE_HANDLE = open(FILE_NAME, "a")
     
     # Append the information
-    FILE_HANDLE.write(datetime.now() + " " + MESSAGE)
+    FILE_HANDLE.write(str(datetime.now()) + " " + MESSAGE + "\n")
     
 
 def main():  
     
-    # Local variable dictionary
-    reddit = login_bot()
-    open(FILE_NAME, "w")
-    
-    # Starting of the application
+    # Start the application
     messageBox("Reddit Bot - KidHelpline", "Application start")
     
-    while True: 
-        try:
-            run_bot(reddit)
-            testMessage("Reddit Bot - KidHelpline", "Sleeping")
-            time.sleep(SLEEP_TIME) # bot checks for new posts or comments once every 2 minutes
-        except praw.exceptions.PRAWException as e:
-            log(str(e))
-            time.sleep(PRAW_ERROR_TIME) # rest for 10 minutes if PRAW related error, longer wait-time is fine as the subreddit is not very active
-        except Exception as e:
-            messageBox("Error: ", str(e))
-            break  
-        # if a non-PRAW error occurs then stop the program, if you want to run the bot indefinitely simply replace this line with time.sleep()
-    
+    while True:
+        
+        # Local variable dictionary
+        reddit = login_bot()
+        
+        # Starting of the application
+        log("Application start")
+        
+        while True:
+            try:
+                run_bot(reddit)
+                testMessage("Reddit Bot - KidHelpline", "Sleeping")
+                time.sleep(SLEEP_TIME) # bot checks for new posts or comments once every 2 minutes
+            except praw.exceptions.PRAWException as e:
+                log(str(e))
+                time.sleep(PRAW_ERROR_TIME_OUT) # rest for 10 minutes if PRAW related error, longer wait-time is fine as the subreddit is not very active
+            except Exception as e:
+                log(str(e))
+                time.sleep(ERROR_TIME_OUT)
+                break;
+            # if a non-PRAW error occurs then stop the program, if you want to run the bot indefinitely simply replace this line with time.sleep()
+        
+        # End application
+        log("Application end")
 
 
 if __name__ == "__main__": # for Python interpreter if you want to run the bot from there as a py file
