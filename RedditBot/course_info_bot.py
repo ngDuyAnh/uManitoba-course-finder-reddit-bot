@@ -6,13 +6,13 @@ import easygui
 from datetime import datetime
 
 # Const variable
-SLEEP_TIME = 5
+SLEEP_TIME = 10
 PRAW_ERROR_TIME_OUT = 10
-ERROR_TIME_OUT = 20
+ERROR_TIME_OUT = 10
 TEST_MODE = False
 
 # Redit variable
-POST_LIMIT = 80
+POST_LIMIT = 120
 
 # File name
 FILE_NAME = "botLog.txt"
